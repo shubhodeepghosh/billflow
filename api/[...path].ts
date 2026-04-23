@@ -1,9 +1,11 @@
 import { Readable } from "node:stream";
-import app from "../dist/server/index.js";
 
-const handler = (app as { fetch?: Function; default?: { fetch?: Function } })?.fetch
-  ? (app as { fetch: Function })
-  : ((app as { default?: { fetch?: Function } })?.default ?? app) as { fetch: Function };
+const appModule: any = await import("../dist/server/index.js");
+const handler: any = appModule?.default?.fetch
+  ? appModule.default
+  : appModule?.fetch
+    ? appModule
+    : appModule?.default ?? appModule;
 
 const toRequest = (req: any) => {
   const protocol =
@@ -23,7 +25,7 @@ const toRequest = (req: any) => {
 
   const method = req.method ?? "GET";
   const hasBody = !["GET", "HEAD"].includes(method);
-  const body = hasBody ? Readable.toWeb(req) : undefined;
+  const body = hasBody ? (Readable.toWeb(req) as any) : undefined;
 
   return new Request(url, {
     method,
@@ -39,7 +41,7 @@ export default async function handle(req: any, res: any) {
       waitUntil() {},
     });
     res.statusCode = response.status;
-    response.headers.forEach((value, key) => {
+    response.headers.forEach((value: string, key: string) => {
       res.setHeader(key, value);
     });
     if (response.body) {
