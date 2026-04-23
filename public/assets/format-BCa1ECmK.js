@@ -1,0 +1,1 @@
+const e=(t,r="INR")=>new Intl.NumberFormat("en-IN",{style:"currency",currency:r,maximumFractionDigits:2}).format(t||0),n=t=>{const r=typeof t=="string"?new Date(t):t;return isNaN(r.getTime())?"-":new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(r)},m=t=>new Intl.NumberFormat("en-US").format(t||0);export{m as a,n as b,e as f};

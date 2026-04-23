@@ -1,0 +1,1 @@
+import{i as a,l as e}from"./index-CByERIpP.js";import{m as s}from"./createLucideIcon-Dio4v7Ru.js";const o={get:async()=>{try{const{data:t}=await a.get("/settings");return t}catch(t){if(!e(t))throw t;return s.get()}},update:async t=>{try{const{data:r}=await a.put("/settings",t);return r}catch(r){if(!e(r))throw r;return s.update(t)}}};export{o as s};

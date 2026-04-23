@@ -1,0 +1,21 @@
+app = "billflow"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  HOST = "0.0.0.0"
+  BILLFLOW_DB_PATH = "/data/.billflow.db"
+
+[[mounts]]
+  source = "billflow_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1

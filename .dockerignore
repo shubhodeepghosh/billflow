@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.tanstack
+.wrangler
+.billflow.db
+dev.err.log
+dev.out.log
