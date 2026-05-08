@@ -63,7 +63,11 @@ interface WorkspaceBackup {
   expenses: Expense[];
 }
 
-const DB_PATH = process.env.BILLFLOW_DB_PATH ?? join(process.cwd(), ".billflow.db");
+// Vercel serverless functions do not provide a writable project root, so fall back
+// to /tmp when no explicit database path is configured.
+const DB_PATH =
+  process.env.BILLFLOW_DB_PATH ??
+  (process.env.VERCEL ? "/tmp/.billflow.db" : join(process.cwd(), ".billflow.db"));
 const DB_URL =
   process.env.DATABASE_URL ??
   process.env.TURSO_DATABASE_URL ??
