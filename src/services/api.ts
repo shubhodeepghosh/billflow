@@ -72,5 +72,8 @@ export const toApiError = (err: unknown): ApiError => {
 
 export const isApiUnavailableError = (err: unknown): boolean => {
   if (!axios.isAxiosError(err)) return false;
-  return !err.response || err.response.status === 404 || err.response.status === 405;
+  if (!err.response) return true;
+  if (err.response.status === 404 || err.response.status === 405) return true;
+  if (err.response.status >= 500 && err.response.status < 600) return true;
+  return false;
 };

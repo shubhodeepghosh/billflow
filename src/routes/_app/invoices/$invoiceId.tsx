@@ -9,11 +9,12 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { toast } from "sonner";
 import { toApiError } from "@/services/api";
-import type { InvoiceStatus } from "@/types";
+import type { AppSettings, InvoiceStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { settingsService } from "@/services/settingsService";
 import { useI18n } from "@/lib/i18n";
 import { buildInvoiceShareText } from "@/utils/invoiceShare";
+import { localSettings } from "@/services/localDb";
 
 export const Route = createFileRoute("/_app/invoices/$invoiceId")({
   component: InvoiceDetailPage,
@@ -21,6 +22,11 @@ export const Route = createFileRoute("/_app/invoices/$invoiceId")({
 
 type FollowUpAction = "print" | "email" | "whatsapp";
 const FOLLOW_UP_KEY = "billflow_invoice_followup";
+
+const formatCompanyLines = (settings: AppSettings) =>
+  [settings.address, [settings.phone, settings.email].filter(Boolean).join(" | "), settings.website]
+    .map((line) => line?.trim())
+    .filter(Boolean) as string[];
 
 function InvoiceDetailPage() {
   const { invoiceId } = Route.useParams();
@@ -36,10 +42,11 @@ function InvoiceDetailPage() {
     queryKey: ["settings"],
     queryFn: settingsService.get,
   });
-  const currency = settings.data?.currency ?? "INR";
+  const company = settings.data ?? localSettings.get();
+  const currency = company.currency ?? "INR";
   const shareContext =
-    data && settings.data && typeof window !== "undefined"
-      ? buildInvoiceShareText(data, settings.data, language, window.location.origin)
+    data && company && typeof window !== "undefined"
+      ? buildInvoiceShareText(data, company, language, window.location.origin)
       : null;
 
   const updateStatus = useMutation({
@@ -226,46 +233,55 @@ function InvoiceDetailPage() {
         <ErrorState onRetry={() => refetch()} />
       ) : data ? (
         <div className="invoice-sheet rounded-[2rem] border border-amber-100/70 bg-[#fbf7f2] p-6 text-slate-800 shadow-[0_24px_60px_-30px_rgba(120,90,50,0.28)] print:shadow-none print:border-0 print:bg-white sm:p-8">
-          {settings.data && (
-            <div className="mb-6 flex items-start justify-between gap-4 border-b border-amber-100 pb-5 print:border-black/15 print:pb-6">
-              <div className="space-y-2">
-                <div className="inline-flex rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700 print:border-black/15 print:text-black/60">
-                  Tax Invoice
-                </div>
-                <div>
-                  <p className="text-3xl font-black tracking-tight text-slate-800 print:text-[22px]">
-                    {settings.data.companyName}
-                  </p>
-                  {settings.data.legalName && (
-                    <p className="text-sm text-slate-500 print:text-black/70">
-                      {settings.data.legalName}
-                    </p>
-                  )}
-                  {settings.data.email && (
-                    <p className="text-sm text-slate-500 print:text-black/70">
-                      {settings.data.email}
-                    </p>
-                  )}
-                </div>
+          <div className="mb-6 flex items-start justify-between gap-4 border-b border-amber-100 pb-5 print:border-black/15 print:pb-6">
+            <div className="space-y-3">
+              <div className="inline-flex rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700 print:border-black/15 print:text-black/60">
+                Tax Invoice
               </div>
-              <div className="flex flex-col items-end gap-3">
-                {settings.data.logoUrl && (
-                  <img src={settings.data.logoUrl} alt="Logo" className="h-14 object-contain" />
+              <div className="flex flex-wrap items-start gap-4">
+                {company.logoUrl ? (
+                  <img
+                    src={company.logoUrl}
+                    alt={`${company.companyName || "Company"} logo`}
+                    className="h-16 w-16 rounded-2xl border border-amber-100 bg-white object-contain p-2 shadow-sm print:border-black/15"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-100 bg-white text-lg font-black text-amber-700 shadow-sm print:border-black/15">
+                    {(company.companyName || "B")
+                      .split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((part) => part[0]?.toUpperCase())
+                      .join("") || "B"}
+                  </div>
                 )}
-                <div className="rounded-2xl border border-amber-100 bg-white/80 px-4 py-3 text-left print:border-black/15 print:bg-white">
-                  <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 print:text-black/60">
-                    Invoice No
+                <div className="space-y-1">
+                  <p className="text-3xl font-black tracking-tight text-slate-800 print:text-[22px]">
+                    {company.companyName || "Company Name"}
                   </p>
-                  <p className="text-xl font-bold text-slate-800 print:text-[18px]">
-                    {data.number}
-                  </p>
-                  <p className="text-xs text-slate-500 print:text-black/60">
-                    {formatDate(data.issueDate)}
-                  </p>
+                  {company.legalName && (
+                    <p className="text-sm text-slate-500 print:text-black/70">
+                      {company.legalName}
+                    </p>
+                  )}
+                  {formatCompanyLines(company).map((line) => (
+                    <p key={line} className="text-sm text-slate-500 whitespace-pre-line print:text-black/70">
+                      {line}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
-          )}
+            <div className="rounded-2xl border border-amber-100 bg-white/80 px-4 py-3 text-left print:border-black/15 print:bg-white">
+              <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 print:text-black/60">
+                Invoice No
+              </p>
+              <p className="text-xl font-bold text-slate-800 print:text-[18px]">{data.number}</p>
+              <p className="text-xs text-slate-500 print:text-black/60">
+                {formatDate(data.issueDate)}
+              </p>
+            </div>
+          </div>
           <div className="grid gap-4 pb-6 border-b border-amber-100 lg:grid-cols-[1.4fr_1fr] print:border-black/15">
             <div className="space-y-3">
               <div className="flex items-center gap-3 flex-wrap">
@@ -402,6 +418,24 @@ function InvoiceDetailPage() {
               {settings.data.footerMessage}
             </div>
           )}
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-[1fr_220px] print:mt-10">
+            <div className="min-h-24 rounded-3xl border border-dashed border-amber-200 bg-white/60 p-4 print:border-black/30 print:bg-transparent">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500 print:text-black/60">
+                Signature
+              </p>
+              <div className="mt-8 border-t border-slate-400 pt-2 text-sm text-slate-600 print:border-black/70 print:text-black">
+                Authorized Signature
+              </div>
+            </div>
+            <div className="rounded-3xl border border-amber-100 bg-white/85 p-4 text-xs text-slate-500 print:border-black/15 print:bg-white">
+              <p className="font-semibold text-slate-700 print:text-black">Invoice History</p>
+              <p className="mt-1">
+                This invoice is stored in your workspace and appears in the invoices list with full
+                search and status history.
+              </p>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

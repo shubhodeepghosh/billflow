@@ -136,6 +136,11 @@ function InvoicesPage() {
         </Select>
       </div>
 
+      <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+        All invoices are stored here, searchable by number, customer, or email, so your billing
+        history stays in one place.
+      </div>
+
       {isLoading ? (
         <SkeletonTable rows={8} cols={6} />
       ) : isError ? (
