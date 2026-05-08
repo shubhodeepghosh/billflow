@@ -420,21 +420,25 @@ function InvoiceDetailPage() {
             </div>
           )}
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-[1fr_220px] print:mt-10">
-            <div className="min-h-24 rounded-3xl border border-dashed border-amber-200 bg-white/60 p-4 print:border-black/30 print:bg-transparent">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500 print:text-black/60">
-                Signature
-              </p>
-              <div className="mt-8 border-t border-slate-400 pt-2 text-sm text-slate-600 print:border-black/70 print:text-black">
+          <div className="mt-8 flex items-end justify-between gap-4 print:hidden">
+            <div className="max-w-md text-xs text-slate-500">
+              This invoice is stored in your invoice history and can be re-opened from the invoices
+              list anytime.
+            </div>
+            <div className="w-full max-w-[220px] rounded-2xl border border-dashed border-amber-200 bg-white/60 p-4">
+              <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Signature</p>
+              <div className="mt-6 border-t border-slate-400 pt-2 text-sm text-slate-600">
                 Authorized Signature
               </div>
             </div>
-            <div className="rounded-3xl border border-amber-100 bg-white/85 p-4 text-xs text-slate-500 print:border-black/15 print:bg-white">
-              <p className="font-semibold text-slate-700 print:text-black">Invoice History</p>
-              <p className="mt-1">
-                This invoice is stored in your workspace and appears in the invoices list with full
-                search and status history.
-              </p>
+          </div>
+
+          <div className="hidden print:fixed print:flex print-signature-box items-end justify-end">
+            <div className="w-full max-w-[54mm] rounded-2xl border border-black/25 bg-white/95 p-3">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-black/55">Signature</p>
+              <div className="mt-5 border-t border-black/60 pt-1 text-[11px] text-black/80">
+                Authorized Signature
+              </div>
             </div>
           </div>
         </div>

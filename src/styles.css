@@ -277,6 +277,23 @@
     padding: 0 !important;
   }
 
+  .invoice-sheet {
+    position: relative;
+    background-image:
+      linear-gradient(to right, transparent 0, transparent calc(100% - 16mm), rgba(17, 24, 39, 0.06) calc(100% - 16mm), rgba(17, 24, 39, 0.06) calc(100% - 15.5mm), transparent calc(100% - 15.5mm)),
+      repeating-linear-gradient(to bottom, transparent 0, transparent 24px, rgba(17, 24, 39, 0.04) 24px, rgba(17, 24, 39, 0.04) 25px);
+    background-attachment: local;
+    padding-right: 16mm !important;
+    padding-bottom: 26mm !important;
+  }
+
+  .print-signature-box {
+    right: 10mm;
+    bottom: 10mm;
+    width: 58mm;
+    z-index: 20;
+  }
+
   .invoice-sheet table {
     width: 100% !important;
     border-collapse: collapse !important;
