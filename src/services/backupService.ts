@@ -1,4 +1,4 @@
-import { api, isApiUnavailableError } from "./api";
+import { api, hasConfiguredApiBackend, isApiUnavailableError } from "./api";
 import { localStorageHelpers } from "./localDb";
 import type { AppSettings, Client, Expense, Invoice, Product } from "@/types";
 
@@ -15,6 +15,9 @@ export interface WorkspaceBackup {
 
 export const backupService = {
   export: async (): Promise<WorkspaceBackup> => {
+    if (!hasConfiguredApiBackend) {
+      return localStorageHelpers.exportAppData() as WorkspaceBackup;
+    }
     try {
       const { data } = await api.get<WorkspaceBackup>("/backup");
       return data;
@@ -24,6 +27,9 @@ export const backupService = {
     }
   },
   restore: async (snapshot: WorkspaceBackup): Promise<WorkspaceBackup> => {
+    if (!hasConfiguredApiBackend) {
+      return localStorageHelpers.importAppData(snapshot as never) as WorkspaceBackup;
+    }
     try {
       const { data } = await api.post<WorkspaceBackup>("/backup/restore", snapshot);
       return data;

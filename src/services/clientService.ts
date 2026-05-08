@@ -1,9 +1,10 @@
-import { api, isApiUnavailableError } from "./api";
+import { api, hasConfiguredApiBackend, isApiUnavailableError } from "./api";
 import type { Client, PaginatedResponse } from "@/types";
 import { localClients, type ClientQuery } from "./localDb";
 
 export const clientService = {
   getAll: async (params: ClientQuery = {}): Promise<PaginatedResponse<Client>> => {
+    if (!hasConfiguredApiBackend) return localClients.getAll(params);
     try {
       const { data } = await api.get<PaginatedResponse<Client>>("/clients", { params });
       return data;
@@ -13,6 +14,7 @@ export const clientService = {
     }
   },
   getById: async (id: string): Promise<Client> => {
+    if (!hasConfiguredApiBackend) return localClients.getById(id);
     try {
       const { data } = await api.get<Client>(`/clients/${id}`);
       return data;
@@ -22,6 +24,7 @@ export const clientService = {
     }
   },
   create: async (payload: Partial<Client>): Promise<Client> => {
+    if (!hasConfiguredApiBackend) return localClients.create(payload);
     try {
       const { data } = await api.post<Client>("/clients", payload);
       return data;
@@ -31,6 +34,7 @@ export const clientService = {
     }
   },
   update: async (id: string, payload: Partial<Client>): Promise<Client> => {
+    if (!hasConfiguredApiBackend) return localClients.update(id, payload);
     try {
       const { data } = await api.put<Client>(`/clients/${id}`, payload);
       return data;
@@ -40,6 +44,10 @@ export const clientService = {
     }
   },
   delete: async (id: string): Promise<void> => {
+    if (!hasConfiguredApiBackend) {
+      localClients.delete(id);
+      return;
+    }
     try {
       await api.delete(`/clients/${id}`);
     } catch (error) {

@@ -1,9 +1,14 @@
-import { api, setToken, clearToken, isApiUnavailableError } from "./api";
+import { api, setToken, clearToken, isApiUnavailableError, hasConfiguredApiBackend } from "./api";
 import type { AuthResponse, AuthUser } from "@/types";
 import { localAuth } from "./localDb";
 
 export const authService = {
   login: async (email: string, password: string): Promise<AuthResponse> => {
+    if (!hasConfiguredApiBackend) {
+      const data = localAuth.login(email, password);
+      setToken(data.token);
+      return data;
+    }
     try {
       const { data } = await api.post<AuthResponse>("/auth/login", { email, password });
       setToken(data.token);
@@ -16,6 +21,11 @@ export const authService = {
     }
   },
   register: async (name: string, email: string, password: string): Promise<AuthResponse> => {
+    if (!hasConfiguredApiBackend) {
+      const data = localAuth.register(name, email, password);
+      setToken(data.token);
+      return data;
+    }
     try {
       const { data } = await api.post<AuthResponse>("/auth/register", { name, email, password });
       setToken(data.token);
@@ -28,6 +38,9 @@ export const authService = {
     }
   },
   me: async (): Promise<AuthUser> => {
+    if (!hasConfiguredApiBackend) {
+      return localAuth.me();
+    }
     try {
       const { data } = await api.get<AuthUser>("/auth/me");
       return data;
@@ -37,7 +50,9 @@ export const authService = {
     }
   },
   logout: () => {
-    api.post("/auth/logout").catch(() => void 0);
+    if (hasConfiguredApiBackend) {
+      api.post("/auth/logout").catch(() => void 0);
+    }
     localAuth.logout();
     clearToken();
   },

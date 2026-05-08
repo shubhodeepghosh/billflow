@@ -1,4 +1,4 @@
-import { api, isApiUnavailableError } from "./api";
+import { api, hasConfiguredApiBackend, isApiUnavailableError } from "./api";
 import type { Invoice, PaginatedResponse } from "@/types";
 import { localInvoices, localSettings, type InvoiceQuery } from "./localDb";
 import { getStoredLanguage } from "@/lib/i18n";
@@ -18,6 +18,7 @@ export interface SendInvoiceResult {
 
 export const invoiceService = {
   getAll: async (params: InvoiceQuery = {}): Promise<PaginatedResponse<Invoice>> => {
+    if (!hasConfiguredApiBackend) return localInvoices.getAll(params);
     try {
       const { data } = await api.get<PaginatedResponse<Invoice>>("/invoices", { params });
       return data;
@@ -27,6 +28,7 @@ export const invoiceService = {
     }
   },
   getById: async (id: string): Promise<Invoice> => {
+    if (!hasConfiguredApiBackend) return localInvoices.getById(id);
     try {
       const { data } = await api.get<Invoice>(`/invoices/${id}`);
       return data;
@@ -36,6 +38,7 @@ export const invoiceService = {
     }
   },
   create: async (payload: Partial<Invoice>): Promise<Invoice> => {
+    if (!hasConfiguredApiBackend) return localInvoices.create(payload);
     try {
       const { data } = await api.post<Invoice>("/invoices", payload);
       return data;
@@ -45,6 +48,7 @@ export const invoiceService = {
     }
   },
   update: async (id: string, payload: Partial<Invoice>): Promise<Invoice> => {
+    if (!hasConfiguredApiBackend) return localInvoices.update(id, payload);
     try {
       const { data } = await api.put<Invoice>(`/invoices/${id}`, payload);
       return data;
@@ -54,6 +58,10 @@ export const invoiceService = {
     }
   },
   delete: async (id: string): Promise<void> => {
+    if (!hasConfiguredApiBackend) {
+      localInvoices.delete(id);
+      return;
+    }
     try {
       await api.delete(`/invoices/${id}`);
     } catch (error) {
@@ -62,6 +70,34 @@ export const invoiceService = {
     }
   },
   send: async (id: string): Promise<SendInvoiceResult> => {
+    if (!hasConfiguredApiBackend) {
+      const invoice = localInvoices.update(id, {
+        status: "sent",
+        sentAt: new Date().toISOString(),
+      });
+      const settings = localSettings.get();
+      const language = getStoredLanguage();
+      const to = invoice.client?.email ?? "";
+      const subject = `${settings.companyName} invoice ${invoice.number}`;
+      const body = [
+        `Hi ${invoice.client?.name ?? "there"},`,
+        "",
+        `Please find your invoice ${invoice.number} attached/ready for payment.`,
+        `Amount due: ${settings.currency} ${invoice.total.toFixed(2)}`,
+        `Due date: ${invoice.dueDate}`,
+        "",
+        settings.paymentTerms,
+        "",
+        settings.footerMessage,
+        "",
+        `Invoice link: /invoices/${invoice.id}`,
+      ].join("\n");
+      const mailtoUrl = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      return {
+        invoice,
+        email: { to, subject, body, mailtoUrl, delivered: false, transport: "mailto" },
+      };
+    }
     try {
       const { data } = await api.post<SendInvoiceResult>(`/invoices/${id}/send`);
       return data;

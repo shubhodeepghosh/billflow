@@ -1,9 +1,10 @@
-import { api, isApiUnavailableError } from "./api";
+import { api, hasConfiguredApiBackend, isApiUnavailableError } from "./api";
 import type { Product, PaginatedResponse } from "@/types";
 import { localProducts, type ProductQuery } from "./localDb";
 
 export const productService = {
   getAll: async (params: ProductQuery = {}): Promise<PaginatedResponse<Product>> => {
+    if (!hasConfiguredApiBackend) return localProducts.getAll(params);
     try {
       const { data } = await api.get<PaginatedResponse<Product>>("/products", { params });
       return data;
@@ -13,6 +14,7 @@ export const productService = {
     }
   },
   getById: async (id: string): Promise<Product> => {
+    if (!hasConfiguredApiBackend) return localProducts.getById(id);
     try {
       const { data } = await api.get<Product>(`/products/${id}`);
       return data;
@@ -22,6 +24,7 @@ export const productService = {
     }
   },
   create: async (payload: Partial<Product>): Promise<Product> => {
+    if (!hasConfiguredApiBackend) return localProducts.create(payload);
     try {
       const { data } = await api.post<Product>("/products", payload);
       return data;
@@ -31,6 +34,7 @@ export const productService = {
     }
   },
   update: async (id: string, payload: Partial<Product>): Promise<Product> => {
+    if (!hasConfiguredApiBackend) return localProducts.update(id, payload);
     try {
       const { data } = await api.put<Product>(`/products/${id}`, payload);
       return data;
@@ -40,6 +44,10 @@ export const productService = {
     }
   },
   delete: async (id: string): Promise<void> => {
+    if (!hasConfiguredApiBackend) {
+      localProducts.delete(id);
+      return;
+    }
     try {
       await api.delete(`/products/${id}`);
     } catch (error) {

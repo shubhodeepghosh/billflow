@@ -1,9 +1,10 @@
-import { api, isApiUnavailableError } from "./api";
+import { api, hasConfiguredApiBackend, isApiUnavailableError } from "./api";
 import type { AnalyticsOverview, InvoiceStatusDistribution, RevenuePoint } from "@/types";
 import { localAnalytics } from "./localDb";
 
 export const analyticsService = {
   overview: async (): Promise<AnalyticsOverview> => {
+    if (!hasConfiguredApiBackend) return localAnalytics.overview();
     try {
       const { data } = await api.get<AnalyticsOverview>("/analytics/overview");
       return data;
@@ -13,6 +14,7 @@ export const analyticsService = {
     }
   },
   revenue: async (range: string = "30d"): Promise<RevenuePoint[]> => {
+    if (!hasConfiguredApiBackend) return localAnalytics.revenue(range);
     try {
       const { data } = await api.get<RevenuePoint[]>("/analytics/revenue", {
         params: { range },
@@ -24,6 +26,7 @@ export const analyticsService = {
     }
   },
   invoiceStatus: async (): Promise<InvoiceStatusDistribution[]> => {
+    if (!hasConfiguredApiBackend) return localAnalytics.invoiceStatus();
     try {
       const { data } = await api.get<InvoiceStatusDistribution[]>("/analytics/invoice-status");
       return data;

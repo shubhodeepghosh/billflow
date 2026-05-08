@@ -15,6 +15,7 @@ import { settingsService } from "@/services/settingsService";
 import { useI18n } from "@/lib/i18n";
 import { buildInvoiceShareText } from "@/utils/invoiceShare";
 import { localSettings } from "@/services/localDb";
+import { hasMeaningfulSettings } from "@/services/settingsService";
 
 export const Route = createFileRoute("/_app/invoices/$invoiceId")({
   component: InvoiceDetailPage,
@@ -42,7 +43,7 @@ function InvoiceDetailPage() {
     queryKey: ["settings"],
     queryFn: settingsService.get,
   });
-  const company = settings.data ?? localSettings.get();
+  const company = settings.data && hasMeaningfulSettings(settings.data) ? settings.data : localSettings.get();
   const currency = company.currency ?? "INR";
   const shareContext =
     data && company && typeof window !== "undefined"
