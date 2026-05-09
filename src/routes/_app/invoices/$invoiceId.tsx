@@ -427,18 +427,16 @@ function InvoiceDetailPage() {
             </div>
             <div className="w-full max-w-[220px] rounded-2xl border border-dashed border-amber-200 bg-white/60 p-4">
               <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Signature</p>
-              <div className="mt-6 border-t border-slate-400 pt-2 text-sm text-slate-600">
-                Authorized Signature
-              </div>
+              <div className="mt-6 border-t border-slate-400 pt-2" />
+              <p className="mt-2 text-sm text-slate-600">{company.companyName || "Company Name"}</p>
             </div>
           </div>
 
           <div className="hidden print:fixed print:flex print-signature-box items-end justify-end">
             <div className="w-full max-w-[54mm] rounded-2xl border border-black/25 bg-white/95 p-3">
               <p className="text-[9px] uppercase tracking-[0.3em] text-black/55">Signature</p>
-              <div className="mt-5 border-t border-black/60 pt-1 text-[11px] text-black/80">
-                Authorized Signature
-              </div>
+              <div className="mt-5 border-t border-black/60 pt-1" />
+              <p className="mt-2 text-[11px] text-black/80">{company.companyName || "Company Name"}</p>
             </div>
           </div>
         </div>
